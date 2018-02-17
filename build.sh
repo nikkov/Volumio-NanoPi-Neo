@@ -102,6 +102,26 @@ else
   echo "Platform folder don't exist"
   mkdir -p ./Volumio-Build/platform-$DEVICE/$DEVICE
   cp -r ./nanopineo/$DEVICE/* ./Volumio-Build/platform-$DEVICE/$DEVICE/
+
+  if [ ! -d "./Volumio-Build/platform-$DEVICE/$DEVICE/boot" ]; then
+    mkdir ./Volumio-Build/platform-$DEVICE/$DEVICE/boot
+  fi
+  if [ ! -d "./Volumio-Build/platform-$DEVICE/$DEVICE/u-boot" ]; then
+    mkdir ./Volumio-Build/platform-$DEVICE/$DEVICE/u-boot
+  fi
+  if [ ! -d "./Volumio-Build/platform-$DEVICE/$DEVICE/lib" ]; then
+    mkdir ./Volumio-Build/platform-$DEVICE/$DEVICE/lib
+  fi
+  if [ ! -d "./Volumio-Build/platform-$DEVICE/$DEVICE/etc" ]; then
+    mkdir ./Volumio-Build/platform-$DEVICE/$DEVICE/etc
+  fi
+  if [ ! -d "./Volumio-Build/platform-$DEVICE/$DEVICE/usr" ]; then
+    mkdir ./Volumio-Build/platform-$DEVICE/$DEVICE/usr
+  fi
+  if [ ! -d "./Volumio-Build/platform-$DEVICE/$DEVICE/var" ]; then
+    mkdir ./Volumio-Build/platform-$DEVICE/$DEVICE/var
+  fi
+
   BUILD_UBOOT="yes"
   BUILD_KERNEL="yes"
 fi
@@ -109,8 +129,8 @@ fi
 if [ -d "./Volumio-Build/platform-$DEVICE/$DEVICE/lib/firmware" ]; then
   echo "Firmware folder do exist"
 else
-  echo "Download firmware files"
-  #tar xfJ ./nanopineo/firmware.tar.xz -C ./Volumio-Build/platform-$DEVICE/$DEVICE/lib/
+  echo "Extract firmware files"
+  tar xfJ ./nanopineo/firmware.tar.xz -C ./Volumio-Build/platform-$DEVICE/$DEVICE/lib/
 fi
 
 if [ "$BUILD_UBOOT" == "yes" ]; then
@@ -164,7 +184,7 @@ case "$DEVICE" in
     ;;
 esac
 
-make clean
+#make clean
 make $KERNEL_DEFCONFIG ARCH=$KERNEL_ARCH CROSS_COMPILE=$KERNEL_CROSS_COMPILE
 make $KERNEL_IMAGE_FILE dtbs modules ARCH=$KERNEL_ARCH CROSS_COMPILE=$KERNEL_CROSS_COMPILE
 make modules_install ARCH=$KERNEL_ARCH CROSS_COMPILE=$KERNEL_CROSS_COMPILE INSTALL_MOD_PATH=output
@@ -198,4 +218,6 @@ fi
 
 cd Volumio-Build
 echo 'Building Volumio image'
-/bin/bash Volumio-Build/build.sh -v "$VERSION" -p "$PATCH" -b armv7 -d $DEVICE
+cd Volumio-Build
+/bin/bash ./build.sh -v "$VERSION" -p "$PATCH" -b armv7 -d $DEVICE
+cd ..
