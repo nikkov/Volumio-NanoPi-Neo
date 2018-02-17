@@ -9,15 +9,18 @@ Install Cross Compiler
   and download the cross compiler gcc-linaro-6.3.1-2017.02-x86_64_aarch64-linux-gnu.tar.xz 
 
 - extract it:
+
 $ mkdir -p /opt/FriendlyARM/toolchain
 $ tar xf gcc-linaro-6.3.1-2017.02-x86_64_aarch64-linux-gnu.tar.xz -C /opt/FriendlyARM/toolchain/
 
 - Add the compiler's path to the "PATH" variable by appending the following lines in the ~/.bashrc file:
+
 $ export PATH=/opt/FriendlyARM/toolchain/gcc-linaro-6.3.1-2017.02-x86_64_aarch64-linux-gnu/bin:$PATH
 $ export GCC_COLORS=auto
 
 - Run the ~/.bashrc script to make the changes in effect immediately in your working shell. 
   Attention: there is a space after ".":
+  
 $ . ~/.bashrc
   
 - You can check whether or not your compiler is setup correctly by running the following commands:
@@ -31,6 +34,7 @@ gcc version 6.3.1 20170109 (Linaro GCC 6.3-2017.02)
 - Visit here download link (https://drive.google.com/drive/folders/1QQjj51DnSyDGQhwUsIn9UsZgSz6u7xlU)
   and download the cross compiler:arm-cortexa9-linux-gnueabihf-4.9.3.tar.xz 
 - and extract it:
+
 $ mkdir -p /opt/FriendlyARM/toolchain
 $ tar xf arm-cortexa9-linux-gnueabihf-4.9.3.tar.xz -C /opt/FriendlyARM/toolchain/
 
@@ -38,8 +42,10 @@ $ tar xf arm-cortexa9-linux-gnueabihf-4.9.3.tar.xz -C /opt/FriendlyARM/toolchain
 
 $ export PATH=/opt/FriendlyARM/toolchain/4.9.3/bin:$PATH
 $ export GCC_COLORS=auto
+
 - Run the ~/.bashrc script to make the changes in effect immediately in your working shell. 
   Attention: there is a space after ".":
+  
 $ . ~/.bashrc
 
 This is a 64-bit compiler and it cannot run on a 32-bit Linux. You can check whether or not your compiler is setup correctly by running the following commands:
