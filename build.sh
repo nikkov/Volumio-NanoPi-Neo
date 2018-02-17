@@ -164,7 +164,7 @@ case "$DEVICE" in
     ;;
 esac
 
-#make clean
+make clean
 make $KERNEL_DEFCONFIG ARCH=$KERNEL_ARCH CROSS_COMPILE=$KERNEL_CROSS_COMPILE
 make $KERNEL_IMAGE_FILE dtbs modules ARCH=$KERNEL_ARCH CROSS_COMPILE=$KERNEL_CROSS_COMPILE
 make modules_install ARCH=$KERNEL_ARCH CROSS_COMPILE=$KERNEL_CROSS_COMPILE INSTALL_MOD_PATH=output
@@ -198,4 +198,4 @@ fi
 
 cd Volumio-Build
 echo 'Building Volumio image'
-#/bin/bash Volumio-Build/build.sh -v "$VERSION" -p "$PATCH" -b armv7 -d $DEVICE
+/bin/bash Volumio-Build/build.sh -v "$VERSION" -p "$PATCH" -b armv7 -d $DEVICE
