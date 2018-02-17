@@ -1,7 +1,7 @@
 Build script and firmware for Volumio images for FriendlyArm's Allwinner H3/H5 boards: NanoPi-Neo, NanoPi-Neo Air and NanoPi-Neo2
 (http://www.friendlyarm.com/index.php?route=product/category&path=69)
 
-1. Prerequisites for build Allwinner H5 nanopi-neo2 platform.
+#### Prerequisites for build Allwinner H5 nanopi-neo2 platform.
 (source URL: http://wiki.friendlyarm.com/wiki/index.php/Mainline_U-boot_and_Linux)
 
 Install Cross Compiler
@@ -32,7 +32,7 @@ $ aarch64-linux-gnu-gcc -v
 gcc version 6.3.1 20170109 (Linaro GCC 6.3-2017.02)
 ```
 
-2. Prerequisites for build Allwinner H3 nanopi-neo(air) platform
+#### Prerequisites for build Allwinner H3 nanopi-neo(air) platform
 (source URL: http://wiki.friendlyarm.com/wiki/index.php/Mainline_U-boot_and_Linux)
 
 * Visit here download link (https://drive.google.com/drive/folders/1QQjj51DnSyDGQhwUsIn9UsZgSz6u7xlU)
