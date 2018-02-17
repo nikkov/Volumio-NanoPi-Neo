@@ -1,5 +1,5 @@
-
-Build script and firmware for Volumio images for FriendlyArm's boards: NanoPi-Neo, NanoPi-Neo Air and NanoPi-Neo2
+Build script and firmware for Volumio images for FriendlyArm's Allwinner H3/H5 boards: NanoPi-Neo, NanoPi-Neo Air and NanoPi-Neo2
+(http://www.friendlyarm.com/index.php?route=product/category&path=69)
 
 1. Prerequisites for build Allwinner H5 nanopi-neo2 platform.
 (source URL: http://wiki.friendlyarm.com/wiki/index.php/Mainline_U-boot_and_Linux)
