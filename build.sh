@@ -11,11 +11,13 @@ Basic usage: ./build.sh -d nanopineo
 Switches:
   -d        Create platform for Specific Devices. Supported device names:
               nanopineo2, nanopineo (nanopineo-air)
+  -a <yes>  (Re)build armv7 folder (eqal to set -b armv7 option)
   -v <vers> Version must be a dot separated number. Example 1.102
   -p <dir>  Optionally patch the builder. <dir> should contain a tree of
             files you want to replace within the build tree. Experts only.
   -u <yes>  Build u-boot
-  -k <yse>  Build kernel
+  -k <yes>  Build kernel
+  -c <yes>  Clean kernel folder before build
 "
   exit 1
 }
@@ -26,7 +28,7 @@ if [ "$NUMARGS" -eq 0 ]; then
   HELP
 fi
 
-while getopts d:u:k:v:p:h FLAG; do
+while getopts d:u:a:k:v:p:c:h FLAG; do
   case $FLAG in
     d)
       DEVICE=$OPTARG
@@ -43,8 +45,14 @@ while getopts d:u:k:v:p:h FLAG; do
     v)
       VERSION=$OPTARG
       ;;
+    a)
+      REBUILD=$OPTARG
+      ;;
     p)
       PATCH=$OPTARG
+      ;;
+    c)
+      CLEAN_KERNEL=$OPTARG
       ;;
     /?) #unrecognized option - show help
       echo -e \\n"Option -${BOLD}$OPTARG${NORM} not allowed."
@@ -92,6 +100,14 @@ if [ -d "./Volumio-Build/platform-$DEVICE/$DEVICE" ]; then
     BUILD_UBOOT="yes"
   fi
 
+  if [ -d "Volumio-Build/build/armv7" ]; then
+    echo "ARMv7 folder do exist"
+  else
+    echo "ARMv7 folder don't exist"
+    REBUILD="yes"
+  fi
+
+
   if ls ./Volumio-Build/platform-$DEVICE/$DEVICE/boot/*mage 1> /dev/null 2>&1; then
     echo "Kernel image file do exist"
   else
@@ -134,90 +150,101 @@ else
 fi
 
 if [ "$BUILD_UBOOT" == "yes" ]; then
-if [ -d "nanopineo/u-boot" ]; then
-  echo "u-boot folder exist"
-else
-  echo "Creating u-boot folder"
-  cd nanopineo
-  git clone https://github.com/friendlyarm/u-boot.git
-  cd u-boot
-  git checkout sunxi-v2017.x
-  cd ../..
-fi
+  if [ -d "nanopineo/u-boot" ]; then
+    echo "u-boot folder exist"
+  else
+    echo "Creating u-boot folder"
+    cd nanopineo
+    git clone https://github.com/friendlyarm/u-boot.git
+    cd u-boot
+    git checkout sunxi-v2017.x
+    cd ../..
+  fi
 
-cd nanopineo/u-boot
-case "$DEVICE" in
-  nanopineo2) echo 'Building NanoPi-NEO2 u-boot files'
-    make nanopi_h5_defconfig CROSS_COMPILE=$KERNEL_CROSS_COMPILE
-    make CROSS_COMPILE=$KERNEL_CROSS_COMPILE
-    cp ./spl/sunxi-spl.bin ../../Volumio-Build/platform-$DEVICE/$DEVICE/u-boot/
-    cp ./u-boot.itb ../../Volumio-Build/platform-$DEVICE/$DEVICE/u-boot/
-    ;;
-  nanopineo) echo 'Building NanoPi-NEO (Air) u-boot files'
-    make nanopi_h3_defconfig ARCH=arm CROSS_COMPILE=$KERNEL_CROSS_COMPILE
-    make ARCH=arm CROSS_COMPILE=$KERNEL_CROSS_COMPILE
-    cp ./u-boot-sunxi-with-spl.bin ../../Volumio-Build/platform-$DEVICE/$DEVICE/u-boot/
-    ;;
-esac
-cd ../..
+  cd nanopineo/u-boot
+  if [ "$CLEAN_KERNEL" == "yes" ]; then
+    make clean
+  fi
+  case "$DEVICE" in
+    nanopineo2) echo 'Building NanoPi-NEO2 u-boot files'
+      make nanopi_h5_defconfig CROSS_COMPILE=$KERNEL_CROSS_COMPILE
+      make CROSS_COMPILE=$KERNEL_CROSS_COMPILE
+      cp ./spl/sunxi-spl.bin ../../Volumio-Build/platform-$DEVICE/$DEVICE/u-boot/
+      cp ./u-boot.itb ../../Volumio-Build/platform-$DEVICE/$DEVICE/u-boot/
+      ;;
+    nanopineo) echo 'Building NanoPi-NEO (Air) u-boot files'
+      make nanopi_h3_defconfig ARCH=arm CROSS_COMPILE=$KERNEL_CROSS_COMPILE
+      make ARCH=arm CROSS_COMPILE=$KERNEL_CROSS_COMPILE
+      cp ./u-boot-sunxi-with-spl.bin ../../Volumio-Build/platform-$DEVICE/$DEVICE/u-boot/
+      ;;
+  esac
+  cd ../..
 fi
 
 if [ "$BUILD_KERNEL" == "yes" ]; then
-if [ -d "nanopineo/kernel" ]; then
-  echo "Kernel folder exist"
-else
-  echo "Creating kernel folder"
-  cd nanopineo
-  git clone https://github.com/nikkov/friendlyarm-linux kernel
-  cd kernel
-  git checkout sunxi-4.x.y
+  if [ -d "nanopineo/kernel" ]; then
+    echo "Kernel folder exist"
+  else
+    echo "Creating kernel folder"
+    cd nanopineo
+    git clone https://github.com/nikkov/friendlyarm-linux kernel
+    cd kernel
+    git checkout sunxi-4.x.y
+    cd ../..
+  fi
+
+  cd nanopineo/kernel
+  touch .scmversion
+
+  case "$DEVICE" in
+    nanopineo2) echo 'Building NanoPi-NEO2 kernel files'
+      ;;
+    nanopineo) echo 'Building NanoPi-NEO (Air) kernel files'
+      ;;
+  esac
+
+  if [ "$CLEAN_KERNEL" == "yes" ]; then
+    make clean
+  fi
+
+  make $KERNEL_DEFCONFIG ARCH=$KERNEL_ARCH CROSS_COMPILE=$KERNEL_CROSS_COMPILE
+  make $KERNEL_IMAGE_FILE dtbs modules ARCH=$KERNEL_ARCH CROSS_COMPILE=$KERNEL_CROSS_COMPILE
+  make modules_install ARCH=$KERNEL_ARCH CROSS_COMPILE=$KERNEL_CROSS_COMPILE INSTALL_MOD_PATH=output
+  cp ./arch/$KERNEL_ARCH/boot/$KERNEL_IMAGE_FILE ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/
+  cp ./.config ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/config-${KERNEL_VERSION}
+  rm -r ../../Volumio-Build/platform-$DEVICE/$DEVICE/lib/modules/*
+  cp -r ./output/lib/* ../../Volumio-Build/platform-$DEVICE/$DEVICE/lib/
+  rm ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/$KERNEL_IMAGE_FILE.version
+  echo "${KERNEL_VERSION}-${CUR_DATE}" >> "../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/$KERNEL_IMAGE_FILE.version"
+
+  case "$DEVICE" in
+    nanopineo2) echo 'Copy NanoPi-NEO2 dtb files'
+      cp ./arch/arm64/boot/dts/allwinner/sun50i-h5-nanopi-neo2.dtb ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun50i-h5-nanopi-neo2-slave.dtb
+      cp ./arch/arm64/boot/dts/allwinner/sun50i-h5-nanopi-neo2.dtb ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun50i-h5-nanopi-neo2.dtb
+      fdtput --type s ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun50i-h5-nanopi-neo2.dtb i2s0 clock-source "pll"
+      ;;
+    nanopineo) echo 'Copy NanoPi-NEO (Air) dtb files'
+      cp ./arch/arm/boot/dts/sun8i-h3-nanopi-neo.dtb ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun8i-h3-nanopi-neo-slave.dtb
+      cp ./arch/arm/boot/dts/sun8i-h3-nanopi-neo.dtb ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun8i-h3-nanopi-neo.dtb
+      fdtput --type s ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun8i-h3-nanopi-neo.dtb i2s0 clock-source "pll"
+
+      cp ./arch/arm/boot/dts/sun8i-h3-nanopi-neo-air.dtb ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun8i-h3-nanopi-neo-air-slave.dtb
+      cp ./arch/arm/boot/dts/sun8i-h3-nanopi-neo-air.dtb ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun8i-h3-nanopi-neo-air.dtb
+      fdtput --type s ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun8i-h3-nanopi-neo-air.dtb i2s0 clock-source "pll"
+      ;;
+  esac
+
   cd ../..
 fi
 
-cd nanopineo/kernel
-touch .scmversion
-
-case "$DEVICE" in
-  nanopineo2) echo 'Building NanoPi-NEO2 kernel files'
-    ;;
-  nanopineo) echo 'Building NanoPi-NEO (Air) kernel files'
-    ;;
-esac
-
-#make clean
-make $KERNEL_DEFCONFIG ARCH=$KERNEL_ARCH CROSS_COMPILE=$KERNEL_CROSS_COMPILE
-make $KERNEL_IMAGE_FILE dtbs modules ARCH=$KERNEL_ARCH CROSS_COMPILE=$KERNEL_CROSS_COMPILE
-make modules_install ARCH=$KERNEL_ARCH CROSS_COMPILE=$KERNEL_CROSS_COMPILE INSTALL_MOD_PATH=output
-cp ./arch/$KERNEL_ARCH/boot/$KERNEL_IMAGE_FILE ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/
-cp ./.config ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/config-${KERNEL_VERSION}
-rm -r ../../Volumio-Build/platform-$DEVICE/$DEVICE/lib/*
-cp -r ./output/lib/* ../../Volumio-Build/platform-$DEVICE/$DEVICE/lib/
-rm ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/$KERNEL_IMAGE_FILE.version
-echo "${KERNEL_VERSION}-${CUR_DATE}" >> "../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/$KERNEL_IMAGE_FILE.version"
-
-case "$DEVICE" in
-  nanopineo2) echo 'Copy NanoPi-NEO2 dtb files'
-    cp ./arch/arm64/boot/dts/allwinner/sun50i-h5-nanopi-neo2.dtb ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun50i-h5-nanopi-neo2-slave.dtb
-    cp ./arch/arm64/boot/dts/allwinner/sun50i-h5-nanopi-neo2.dtb ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun50i-h5-nanopi-neo2.dtb
-    fdtput --type s ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun50i-h5-nanopi-neo2.dtb i2s0 clock-source "pll"
-    ;;
-  nanopineo) echo 'Copy NanoPi-NEO (Air) dtb files'
-    cp ./arch/arm/boot/dts/sun8i-h3-nanopi-neo.dtb ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun8i-h3-nanopi-neo-slave.dtb
-    cp ./arch/arm/boot/dts/sun8i-h3-nanopi-neo.dtb ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun8i-h3-nanopi-neo.dtb
-    fdtput --type s ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun8i-h3-nanopi-neo.dtb i2s0 clock-source "pll"
-
-    cp ./arch/arm/boot/dts/sun8i-h3-nanopi-neo-air.dtb ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun8i-h3-nanopi-neo-air-slave.dtb
-    cp ./arch/arm/boot/dts/sun8i-h3-nanopi-neo-air.dtb ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun8i-h3-nanopi-neo-air.dtb
-    fdtput --type s ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/sun8i-h3-nanopi-neo-air.dtb i2s0 clock-source "pll"
-    ;;
-esac
-
-cd ../..
 mkimage -C none -A arm -T script -d ./Volumio-Build/platform-$DEVICE/$DEVICE/boot/boot.cmd ./Volumio-Build/platform-$DEVICE/$DEVICE/boot/boot.scr
-fi
 
 cd Volumio-Build
 echo 'Building Volumio image'
 cd Volumio-Build
-/bin/bash ./build.sh -v "$VERSION" -p "$PATCH" -b armv7 -d $DEVICE
+if [ "$REBUILD" == "yes" ]; then
+  /bin/bash ./build.sh -v "$VERSION" -p "$PATCH" -b armv7 -d $DEVICE
+else
+  /bin/bash ./build.sh -v "$VERSION" -p "$PATCH" -d $DEVICE
+fi
 cd ..
