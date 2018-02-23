@@ -20,4 +20,4 @@ fdt set mmc${boot_mmc} boot_device <1>
 
 setenv fbcon map:0
 setenv bootargs console=ttyS0,115200 earlyprintk rootwait imgpart=/dev/mmcblk0p2 imgfile=/volumio_current.sqsh fsck.repair=${fsck.repair} fbcon=${fbcon}
-bootz ${kernel_addr} ${initrd_addr}:503000 ${dtb_addr}
+bootz ${kernel_addr} ${initrd_addr}:550000 ${dtb_addr}

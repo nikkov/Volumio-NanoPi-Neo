@@ -1,3 +1,6 @@
+# Recompile with:
+# mkimage -C none -A arm -T script -d boot.cmd boot.scr
+
 setenv fsck.repair yes
 
 setenv kernel_addr 0x46000000

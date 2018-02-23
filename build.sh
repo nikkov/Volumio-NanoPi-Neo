@@ -66,14 +66,14 @@ if [ "$DEVICE" = nanopineo2 ]; then
   echo "Start building Volumio for NanoPi-NEO2"
   KERNEL_VERSION="4.14.0-h5"
   KERNEL_ARCH="arm64"
-  KERNEL_DEFCONFIG="sunxi_arm64_defconfig"
+  KERNEL_DEFCONFIG="nanopineo2_defconfig"
   KERNEL_CROSS_COMPILE="aarch64-linux-gnu-"
   KERNEL_IMAGE_FILE="Image"
 elif [ "$DEVICE" = nanopineo ]; then
   echo "Start building Volumio for NanoPi-NEO (Air)"
   KERNEL_VERSION="4.14.0-h3"
   KERNEL_ARCH="arm"
-  KERNEL_DEFCONFIG="sunxi_defconfig"
+  KERNEL_DEFCONFIG="nanopineo_defconfig"
   KERNEL_CROSS_COMPILE="arm-linux-"
   KERNEL_IMAGE_FILE="zImage"
 else
@@ -193,6 +193,7 @@ if [ "$BUILD_KERNEL" == "yes" ]; then
     cd ../..
   fi
 
+  cp nanopineo/$DEVICE/config/config_$DEVICE nanopineo/kernel/arch/$KERNEL_ARCH/configs/$KERNEL_DEFCONFIG
   cd nanopineo/kernel
   touch .scmversion
 
@@ -208,6 +209,7 @@ if [ "$BUILD_KERNEL" == "yes" ]; then
   fi
 
   make $KERNEL_DEFCONFIG ARCH=$KERNEL_ARCH CROSS_COMPILE=$KERNEL_CROSS_COMPILE
+  # make menuconfig ARCH=$KERNEL_ARCH CROSS_COMPILE=$KERNEL_CROSS_COMPILE
   make $KERNEL_IMAGE_FILE dtbs modules ARCH=$KERNEL_ARCH CROSS_COMPILE=$KERNEL_CROSS_COMPILE
   make modules_install ARCH=$KERNEL_ARCH CROSS_COMPILE=$KERNEL_CROSS_COMPILE INSTALL_MOD_PATH=output
   cp ./arch/$KERNEL_ARCH/boot/$KERNEL_IMAGE_FILE ../../Volumio-Build/platform-$DEVICE/$DEVICE/boot/
