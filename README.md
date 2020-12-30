@@ -1,3 +1,6 @@
+Depricated. I moved to armbian-based platform files (https://github.com/nikkov/platform-armbian)
+
+
 Build script and firmware for Volumio images for FriendlyArm's Allwinner H3/H5 boards: NanoPi-Neo, NanoPi-Neo Air and NanoPi-Neo2
 (http://www.friendlyarm.com/index.php?route=product/category&path=69)
 
